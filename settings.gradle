@@ -1,0 +1,2 @@
+include ':app', ':library', ':resource', ':media'
+rootProject.name='RecordLife'
