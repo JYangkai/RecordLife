@@ -1,4 +1,4 @@
-package com.yk.recordlife.ui.record;
+package com.yk.recordlife.ui.activity.record;
 
 import android.app.Application;
 import android.content.Context;
@@ -7,7 +7,6 @@ import android.media.MediaFormat;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
 import com.yk.media.core.MediaRecorder;
@@ -19,14 +18,13 @@ import com.yk.media.core.param.RecordParam;
 import com.yk.media.core.param.VideoEncodeParam;
 import com.yk.media.opengles.renderer.RecordRenderer;
 import com.yk.media.opengles.view.EGLSurfaceView;
+import com.yk.recordlife.ui.base.BaseViewModel;
 
 import java.io.File;
 
 import javax.microedition.khronos.egl.EGLContext;
 
-public class RecordViewModel extends AndroidViewModel implements OnRecordListener {
-    private Context context;
-
+public class RecordViewModel extends BaseViewModel implements OnRecordListener {
     private MediaRecorder mediaRecorder;
 
     private MicParam micParam;
@@ -39,7 +37,6 @@ public class RecordViewModel extends AndroidViewModel implements OnRecordListene
 
     public RecordViewModel(@NonNull Application application) {
         super(application);
-        context = application.getApplicationContext();
     }
 
     private void initRecordParam(int facing, EGLContext eglContext, int textureId,

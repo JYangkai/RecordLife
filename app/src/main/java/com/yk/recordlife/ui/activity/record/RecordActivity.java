@@ -1,4 +1,4 @@
-package com.yk.recordlife.ui.record;
+package com.yk.recordlife.ui.activity.record;
 
 import android.os.Bundle;
 import android.util.Log;

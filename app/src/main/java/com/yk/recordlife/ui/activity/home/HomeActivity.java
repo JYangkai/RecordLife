@@ -1,32 +1,41 @@
-package com.yk.recordlife.ui.home;
+package com.yk.recordlife.ui.activity.home;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.viewpager.widget.ViewPager;
 
+import com.google.android.material.tabs.TabLayout;
 import com.yk.recordlife.R;
 import com.yk.recordlife.ui.base.BaseActivity;
-import com.yk.recordlife.ui.record.RecordActivity;
+import com.yk.recordlife.ui.base.BaseFragment;
+import com.yk.recordlife.utils.MyFragmentPagerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class HomeActivity extends BaseActivity {
+    private HomeViewModel viewModel;
 
-    private AppCompatButton startRecordBtn;
+    private ViewPager viewPager;
+    private TabLayout tabLayout;
+    private MyFragmentPagerAdapter fragmentPagerAdapter;
+
+    private List<BaseFragment> fragmentList = new ArrayList<>();
+    private List<String> titleList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         findView();
         initData();
         bindEvent();
@@ -34,22 +43,31 @@ public class HomeActivity extends BaseActivity {
 
     @Override
     protected void findView() {
-        startRecordBtn = findViewById(R.id.start_record_btn);
+        viewPager = findViewById(R.id.view_pager);
+        tabLayout = findViewById(R.id.tab_layout);
     }
 
     @Override
     protected void initData() {
+        fragmentPagerAdapter = new MyFragmentPagerAdapter(fragmentList, titleList,
+                getSupportFragmentManager(), FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+        viewPager.setAdapter(fragmentPagerAdapter);
+        tabLayout.setupWithViewPager(viewPager);
+
         checkPermission();
     }
 
     @Override
     protected void bindEvent() {
-        startRecordBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(HomeActivity.this, RecordActivity.class));
-            }
-        });
+    }
+
+    private void loadFragmentAndTitleList() {
+        fragmentList.clear();
+        fragmentList.addAll(viewModel.getFragmentList());
+        titleList.clear();
+        titleList.addAll(viewModel.getTitleList());
+
+        fragmentPagerAdapter.notifyDataSetChanged();
     }
 
     private void checkPermission() {
@@ -71,6 +89,7 @@ public class HomeActivity extends BaseActivity {
             ActivityCompat.requestPermissions(this, permissions, 0);
             return;
         }
+        loadFragmentAndTitleList();
     }
 
     @Override
@@ -84,6 +103,7 @@ public class HomeActivity extends BaseActivity {
                         return;
                     }
                 }
+                loadFragmentAndTitleList();
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
