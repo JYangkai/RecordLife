@@ -95,6 +95,7 @@ public class VideoFragment extends BaseFragment implements TextureView.SurfaceTe
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setDataSource(path);
             mediaPlayer.setSurface(surface);
+            mediaPlayer.setLooping(true);
             mediaPlayer.prepare();
         } catch (IOException e) {
             e.printStackTrace();

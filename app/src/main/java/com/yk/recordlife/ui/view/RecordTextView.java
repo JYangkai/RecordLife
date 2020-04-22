@@ -74,11 +74,15 @@ public class RecordTextView extends AppCompatTextView {
         }
     }
 
+    public void autoScale() {
+        int screenHeight = context.getResources().getDisplayMetrics().heightPixels;
+        scaleHeight(screenHeight / 2, screenHeight / 5);
+    }
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        int screenHeight = context.getResources().getDisplayMetrics().heightPixels;
-        scaleHeight(screenHeight / 2, screenHeight / 5);
+        autoScale();
     }
 
     @Override
