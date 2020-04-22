@@ -42,7 +42,7 @@ public class RecordFragment extends BaseFragment {
 
     @Override
     protected void initData() {
-        tvRecord.scaleHeight(0);
+
     }
 
     @Override

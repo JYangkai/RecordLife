@@ -3,6 +3,7 @@ package com.yk.recordlife.ui.view;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 
 import androidx.appcompat.widget.AppCompatTextView;
 
@@ -22,27 +23,20 @@ public class RecordTextView extends AppCompatTextView {
         this.context = context;
     }
 
-    public void scaleHeight(int height) {
+    public void scaleHeight(int startHieght, int endHeight) {
         post(new Runnable() {
             @Override
             public void run() {
-                startScaleHeightAnimator(height);
+                startScaleHeightAnimator(startHieght, endHeight);
             }
         });
     }
 
     private ValueAnimator scaleHeightAnimator;
 
-    private void startScaleHeightAnimator(int height) {
+    private void startScaleHeightAnimator(int startHieght, int endHeight) {
         stopScaleHeightAnimator();
-        int currentHeight = getHeight();
-        int targetHeight;
-        if (height <= 0) {
-            targetHeight = currentHeight / 3 * 2;
-        } else {
-            targetHeight = height;
-        }
-        scaleHeightAnimator = ValueAnimator.ofInt(currentHeight, targetHeight);
+        scaleHeightAnimator = ValueAnimator.ofInt(startHieght, endHeight);
         scaleHeightAnimator.setDuration(500);
         scaleHeightAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -78,6 +72,13 @@ public class RecordTextView extends AppCompatTextView {
         } else {
             setMeasuredDimension(width, this.height);
         }
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        int screenHeight = context.getResources().getDisplayMetrics().heightPixels;
+        scaleHeight(screenHeight / 2, screenHeight / 5);
     }
 
     @Override
