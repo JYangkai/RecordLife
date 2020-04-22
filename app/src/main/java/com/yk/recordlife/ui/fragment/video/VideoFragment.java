@@ -8,6 +8,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,11 +19,14 @@ import com.yk.recordlife.ui.base.BaseFragment;
 import com.yk.recordlife.ui.view.AutoFitTextureView;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class VideoFragment extends BaseFragment implements TextureView.SurfaceTextureListener {
     private VideoViewModel viewModel;
 
     private AutoFitTextureView playView;
+    private ProgressBar progressBar;
 
     private String path;
 
@@ -46,6 +50,7 @@ public class VideoFragment extends BaseFragment implements TextureView.SurfaceTe
     @Override
     protected void findView(View view) {
         playView = view.findViewById(R.id.play_view);
+        progressBar = view.findViewById(R.id.progress_bar);
     }
 
     @Override
@@ -68,6 +73,7 @@ public class VideoFragment extends BaseFragment implements TextureView.SurfaceTe
                     mediaPlayer.pause();
                 } else {
                     mediaPlayer.start();
+                    startProgressBarTimer();
                 }
             }
         });
@@ -87,6 +93,7 @@ public class VideoFragment extends BaseFragment implements TextureView.SurfaceTe
     public void onPause() {
         super.onPause();
         stopPlay();
+        stopProgressBarTimer();
     }
 
     private void startPlay(Surface surface) {
@@ -105,6 +112,7 @@ public class VideoFragment extends BaseFragment implements TextureView.SurfaceTe
             return;
         }
         mediaPlayer.start();
+        startProgressBarTimer();
         playView.setRatioSize(mediaPlayer.getVideoWidth(), mediaPlayer.getVideoHeight());
     }
 
@@ -113,6 +121,37 @@ public class VideoFragment extends BaseFragment implements TextureView.SurfaceTe
             mediaPlayer.stop();
             mediaPlayer.release();
             mediaPlayer = null;
+        }
+    }
+
+    private Timer progressBarTimer;
+
+    private void startProgressBarTimer() {
+        stopProgressBarTimer();
+        long duration = mediaPlayer.getDuration();
+        progressBar.setMax((int) duration);
+        progressBarTimer = new Timer();
+        progressBarTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mediaPlayer == null) {
+                            stopProgressBarTimer();
+                            return;
+                        }
+                        progressBar.setProgress(mediaPlayer.getCurrentPosition());
+                    }
+                });
+            }
+        }, 0, 20);
+    }
+
+    private void stopProgressBarTimer() {
+        if (progressBarTimer != null) {
+            progressBarTimer.cancel();
+            progressBarTimer = null;
         }
     }
 
