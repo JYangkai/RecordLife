@@ -1,5 +1,6 @@
 package com.yk.recordlife.ui.activity.record;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.yk.media.opengles.view.CameraView;
 import com.yk.recordlife.R;
+import com.yk.recordlife.ui.activity.edit.EditActivity;
 import com.yk.recordlife.ui.base.BaseActivity;
 import com.yk.recordlife.utils.CameraManager;
 
@@ -82,6 +84,9 @@ public class RecordActivity extends BaseActivity {
             @Override
             public void onChanged(String path) {
                 Log.i("JOJO", "录制完成:" + path);
+                Intent intent = new Intent(RecordActivity.this, EditActivity.class);
+                intent.putExtra("path", path);
+                startActivity(intent);
             }
         });
     }

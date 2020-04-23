@@ -25,6 +25,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.activity.record.RecordActivity" />
+        <activity android:name=".ui.activity.edit.EditActivity"/>
     </application>
 
 </manifest>
