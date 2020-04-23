@@ -1,7 +1,6 @@
 package com.yk.recordlife.ui.activity.record;
 
 import android.app.Application;
-import android.content.Context;
 import android.media.AudioFormat;
 import android.media.MediaFormat;
 import android.util.Log;
@@ -11,6 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.yk.media.core.MediaRecorder;
 import com.yk.media.core.OnRecordListener;
+import com.yk.media.core.bean.Section;
 import com.yk.media.core.param.AudioEncodeParam;
 import com.yk.media.core.param.CameraParam;
 import com.yk.media.core.param.MicParam;
@@ -96,28 +96,38 @@ public class RecordViewModel extends BaseViewModel implements OnRecordListener {
         mediaRecorder.prepare(micParam, cameraParam, audioEncodeParam, videoEncodeParam, recordParam);
     }
 
-    boolean startRecord(int facing, EGLContext eglContext, int textureId,
-                        int width, int height) {
-        stopRecord();
+    boolean beginSection(int facing, EGLContext eglContext, int textureId,
+                         int width, int height) {
+        endSection();
         initRecordParam(facing, eglContext, textureId, width, height);
-        return mediaRecorder.startRecord();
+        return mediaRecorder.beginSection();
     }
 
-    void stopRecord() {
+    void endSection() {
         if (mediaRecorder != null) {
-            mediaRecorder.stopRecord();
+            mediaRecorder.endSection();
         }
     }
 
     @Override
-    public void onStartRecord() {
+    public void onBeginSection() {
         Log.i("JOJO", "on start record");
     }
 
     @Override
-    public void onStopRecord(String path) {
-        Log.i("JOJO", "on stop record:" + path);
-        recordResult.postValue(path);
+    public void onEndSection(Section section) {
+        Log.i("JOJO", "on stop record:" + section.getPath());
+        recordResult.postValue(section.getPath());
+    }
+
+    @Override
+    public void onConcatStart() {
+
+    }
+
+    @Override
+    public void onConcatEnd(String path) {
+
     }
 
     @Override

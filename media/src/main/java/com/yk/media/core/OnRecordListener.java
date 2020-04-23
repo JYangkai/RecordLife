@@ -1,9 +1,15 @@
 package com.yk.media.core;
 
-public interface OnRecordListener {
-    void onStartRecord();
+import com.yk.media.core.bean.Section;
 
-    void onStopRecord(String path);
+public interface OnRecordListener {
+    void onBeginSection();
+
+    void onEndSection(Section section);
+
+    void onConcatStart();
+
+    void onConcatEnd(String path);
 
     void onRecordError(String error);
 }

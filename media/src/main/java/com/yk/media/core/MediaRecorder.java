@@ -8,6 +8,7 @@ import android.media.MediaMuxer;
 import android.os.Build;
 import android.view.Surface;
 
+import com.yk.media.core.bean.Section;
 import com.yk.media.core.param.AudioEncodeParam;
 import com.yk.media.core.param.CameraParam;
 import com.yk.media.core.param.MicParam;
@@ -18,6 +19,8 @@ import com.yk.media.opengles.view.EGLSurfaceView;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLContext;
 
@@ -31,6 +34,8 @@ public class MediaRecorder {
     private RecordParam recordParam;
 
     private Surface surface;
+
+    private List<Section> sectionList = new ArrayList<>();
 
     public void prepare(MicParam micParam, CameraParam cameraParam,
                         AudioEncodeParam audioEncodeParam, VideoEncodeParam videoEncodeParam,
@@ -59,14 +64,14 @@ public class MediaRecorder {
      *
      * @return 启动成功
      */
-    public boolean startRecord() {
+    public boolean beginSection() {
         if (checkState()) {
             if (onRecordListener != null) {
                 onRecordListener.onRecordError("开始录制失败，请检查传入参数是否完整");
             }
             return false;
         }
-        stopRecord();
+        endSection();
 
         // 初始化MediaThread
         mediaThread = new MediaThread();
@@ -82,7 +87,7 @@ public class MediaRecorder {
         glThread.start();
 
         if (onRecordListener != null) {
-            onRecordListener.onStartRecord();
+            onRecordListener.onBeginSection();
         }
 
         return true;
@@ -91,7 +96,7 @@ public class MediaRecorder {
     /**
      * 停止录制
      */
-    public void stopRecord() {
+    public void endSection() {
         if (mediaThread != null) {
             mediaThread.stopRecord();
             mediaThread = null;
@@ -99,6 +104,27 @@ public class MediaRecorder {
         if (glThread != null) {
             glThread.onDestroy();
             glThread = null;
+        }
+    }
+
+    private MediaConcat mediaConcat;
+
+    /**
+     * 开始合成
+     */
+    public void startConcat() {
+        stopConcat();
+        mediaConcat = new MediaConcat(sectionList, recordParam.getConcatPath());
+        mediaConcat.startConcat();
+    }
+
+    /**
+     * 结束合成
+     */
+    public void stopConcat() {
+        if (mediaConcat != null) {
+            mediaConcat.stopConcat();
+            mediaConcat = null;
         }
     }
 
@@ -297,8 +323,15 @@ public class MediaRecorder {
                 mediaMuxer = null;
             }
 
+            // 保存片段
+            Section section = new Section.Builder()
+                    .setPath(recordParam.getPath())
+                    .keepAudio(recordParam.isKeepAudio())
+                    .keepVideo(recordParam.isKeepVideo())
+                    .build();
+            sectionList.add(section);
             if (onRecordListener != null) {
-                onRecordListener.onStopRecord(recordParam.getPath());
+                onRecordListener.onEndSection(section);
             }
         }
     }
