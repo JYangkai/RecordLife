@@ -6,6 +6,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
+import android.text.TextUtils;
 import android.view.Surface;
 
 import com.yk.media.core.bean.Section;
@@ -107,14 +108,32 @@ public class MediaRecorder {
         }
     }
 
+    public void deleteLastSection() {
+        if (sectionList == null || sectionList.size() == 0) {
+            return;
+        }
+        sectionList.remove(sectionList.size() - 1);
+    }
+
+    public void deleteAllSection() {
+        if (sectionList == null || sectionList.size() == 0) {
+            return;
+        }
+        sectionList.clear();
+    }
+
     private MediaConcat mediaConcat;
 
     /**
      * 开始合成
      */
     public void startConcat() {
+        if (sectionList == null || sectionList.size() == 0 ||
+                recordParam == null || TextUtils.isEmpty(recordParam.getPath())) {
+            return;
+        }
         stopConcat();
-        mediaConcat = new MediaConcat(sectionList, recordParam.getConcatPath());
+        mediaConcat = new MediaConcat(sectionList, recordParam.getPath());
         mediaConcat.startConcat();
     }
 
@@ -123,9 +142,10 @@ public class MediaRecorder {
      */
     public void stopConcat() {
         if (mediaConcat != null) {
-            mediaConcat.stopConcat();
+            mediaConcat.release();
             mediaConcat = null;
         }
+
     }
 
     private class MediaThread extends Thread {
@@ -138,6 +158,8 @@ public class MediaRecorder {
 
         private int bufferSizeInBytes;
 
+        private String path;
+
         public void init() {
             initMuxer();
             initAudio();
@@ -146,7 +168,10 @@ public class MediaRecorder {
 
         private void initMuxer() {
             try {
-                mediaMuxer = new MediaMuxer(recordParam.getPath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                String path = recordParam.getPath();
+                String dir = path.substring(0, path.lastIndexOf("."));
+                this.path = dir + "_section_" + sectionList.size() + ".mp4";
+                mediaMuxer = new MediaMuxer(this.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             } catch (IOException e) {
                 e.printStackTrace();
                 mediaMuxer = null;
@@ -325,7 +350,7 @@ public class MediaRecorder {
 
             // 保存片段
             Section section = new Section.Builder()
-                    .setPath(recordParam.getPath())
+                    .setPath(path)
                     .keepAudio(recordParam.isKeepAudio())
                     .keepVideo(recordParam.isKeepVideo())
                     .build();

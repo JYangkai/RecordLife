@@ -55,14 +55,13 @@ public class EditActivity extends BaseActivity {
 
     @Override
     protected void bindEvent() {
-        viewModel.frameList.observe(this, new Observer<List<Frame>>() {
+        viewModel.mFrame.observe(this, new Observer<Frame>() {
             @Override
-            public void onChanged(List<Frame> list) {
-                if (list == null || list.size() == 0) {
+            public void onChanged(Frame frame) {
+                if (frame == null || frame.getBitmap() == null || frame.getBitmap().isRecycled()) {
                     return;
                 }
-                clearFrameList(frameList);
-                frameList.addAll(list);
+                frameList.add(frame);
                 adapter.notifyDataSetChanged();
             }
         });
@@ -77,7 +76,16 @@ public class EditActivity extends BaseActivity {
         viewModel.loadFrameList(path);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        clearFrameList(frameList);
+    }
+
     private void clearFrameList(List<Frame> frameList) {
+        if (frameList == null || frameList.size() == 0) {
+            return;
+        }
         for (Frame frame : frameList) {
             releaseBitmap(frame.getBitmap());
         }

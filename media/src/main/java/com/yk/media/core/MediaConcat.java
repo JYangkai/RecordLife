@@ -8,6 +8,7 @@ import android.text.TextUtils;
 
 import com.yk.media.core.bean.Section;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -25,30 +26,46 @@ public class MediaConcat {
     }
 
     public void startConcat() {
-        stopConcat();
+        release();
         concatThread = new ConcatThread();
         concatThread.init();
         concatThread.start();
     }
 
-    public void stopConcat() {
+    public void release() {
         if (concatThread != null) {
-            concatThread.stopConcat();
+            concatThread.endConcat();
             concatThread = null;
         }
+        deleteAllSections();
+    }
+
+    private void deleteAllSections() {
+        if (sectionList == null || sectionList.size() == 0) {
+            return;
+        }
+        for (Section section : sectionList) {
+            File file = new File(section.getPath());
+            if (file.exists()) {
+                file.delete();
+            }
+        }
+        sectionList.clear();
     }
 
     private class ConcatThread extends Thread {
         private MediaMuxer mediaMuxer;
 
-        private MediaFormat audioFormat;
-        private MediaFormat videoFormat;
-
-        private int audioTrack;
-        private int videoTrack;
+        private int audioTrack = -1;
+        private int videoTrack = -1;
 
         void init() {
+            if (sectionList == null || sectionList.size() == 0) {
+                return;
+            }
             // 第一步，获取MediaFormat
+            MediaFormat audioFormat = null;
+            MediaFormat videoFormat = null;
             for (Section section : sectionList) {
                 if (audioFormat != null && videoFormat != null) {
                     break;
@@ -67,15 +84,19 @@ public class MediaConcat {
                 }
 
                 // 获取音频轨道
-                int audioTrackIndex = getTrackIndex(extractor, "audio/");
-                if (audioTrackIndex != -1) {
-                    audioFormat = extractor.getTrackFormat(audioTrackIndex);
+                if (audioFormat == null) {
+                    int audioTrackIndex = getTrackIndex(extractor, "audio/");
+                    if (audioTrackIndex != -1) {
+                        audioFormat = extractor.getTrackFormat(audioTrackIndex);
+                    }
                 }
 
                 // 获取视频轨道
-                int videoTrackIndex = getTrackIndex(extractor, "video/");
-                if (videoTrackIndex != -1) {
-                    videoFormat = extractor.getTrackFormat(videoTrackIndex);
+                if (videoFormat == null) {
+                    int videoTrackIndex = getTrackIndex(extractor, "video/");
+                    if (videoTrackIndex != -1) {
+                        videoFormat = extractor.getTrackFormat(videoTrackIndex);
+                    }
                 }
 
                 extractor.release();
@@ -101,8 +122,8 @@ public class MediaConcat {
             videoTrack = mediaMuxer.addTrack(videoFormat);
         }
 
-        void stopConcat() {
-            if (mediaMuxer==null) {
+        void endConcat() {
+            if (mediaMuxer == null) {
                 return;
             }
             mediaMuxer.stop();
@@ -111,7 +132,8 @@ public class MediaConcat {
 
         @Override
         public void run() {
-            if (mediaMuxer == null) {
+            if (mediaMuxer == null || audioTrack == -1 || videoTrack == -1 ||
+                    sectionList == null || sectionList.size() == 0) {
                 return;
             }
             mediaMuxer.start();
@@ -192,7 +214,7 @@ public class MediaConcat {
                     }
                 }
             }
-            stopConcat();
+            endConcat();
         }
 
         private int getTrackIndex(MediaExtractor extractor, String mime) {

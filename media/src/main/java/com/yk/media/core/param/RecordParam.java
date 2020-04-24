@@ -5,7 +5,6 @@ import android.text.TextUtils;
 public class RecordParam {
     private long maxRecordDuration = -1;
     private String path;
-    private String concatPath;
     private boolean keepAudio = true;
     private boolean keepVideo = true;
 
@@ -26,14 +25,6 @@ public class RecordParam {
 
     public void setPath(String path) {
         this.path = path;
-    }
-
-    public String getConcatPath() {
-        return concatPath;
-    }
-
-    public void setConcatPath(String concatPath) {
-        this.concatPath = concatPath;
     }
 
     public boolean isKeepAudio() {
@@ -66,11 +57,6 @@ public class RecordParam {
 
         public Builder setPath(String path) {
             recordParam.setPath(path);
-            return this;
-        }
-
-        public Builder setConcatPath(String concatPath) {
-            recordParam.setConcatPath(concatPath);
             return this;
         }
 
