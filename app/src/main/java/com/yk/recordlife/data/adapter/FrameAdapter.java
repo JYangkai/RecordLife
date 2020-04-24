@@ -7,11 +7,13 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatImageView;
+import androidx.appcompat.widget.AppCompatTextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.yk.recordlife.R;
 import com.yk.recordlife.data.bean.Frame;
+import com.yk.recordlife.utils.TimeUtils;
 
 import java.util.List;
 
@@ -38,6 +40,7 @@ public class FrameAdapter extends RecyclerView.Adapter<FrameAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Frame frame = frameList.get(position);
         Glide.with(context).load(frame.getBitmap()).into(holder.ivFrame);
+        holder.tvTime.setText(TimeUtils.getTimeStr(frame.getTime()));
     }
 
     @Override
@@ -48,11 +51,13 @@ public class FrameAdapter extends RecyclerView.Adapter<FrameAdapter.ViewHolder> 
     static class ViewHolder extends RecyclerView.ViewHolder {
         View view;
         AppCompatImageView ivFrame;
+        AppCompatTextView tvTime;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             view = itemView;
             ivFrame = itemView.findViewById(R.id.iv_frame);
+            tvTime = itemView.findViewById(R.id.tv_time);
         }
     }
 

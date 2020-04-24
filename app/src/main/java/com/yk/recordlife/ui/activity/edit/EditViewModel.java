@@ -38,6 +38,7 @@ public class EditViewModel extends BaseViewModel {
                             false);
                     Frame frame = new Frame();
                     frame.setBitmap(scaleBitmap);
+                    frame.setTime(i / 1000);
                     bitmap.recycle();
                     mFrame.postValue(frame);
                 }

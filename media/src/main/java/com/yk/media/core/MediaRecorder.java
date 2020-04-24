@@ -18,6 +18,7 @@ import com.yk.media.core.param.VideoEncodeParam;
 import com.yk.media.opengles.egl.EglHelper;
 import com.yk.media.opengles.view.EGLSurfaceView;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -171,7 +172,11 @@ public class MediaRecorder {
                 String path = recordParam.getPath();
                 String dir = path.substring(0, path.lastIndexOf("."));
                 this.path = dir + "_section_" + sectionList.size() + ".mp4";
-                mediaMuxer = new MediaMuxer(this.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                File file = new File(this.path);
+                if (file.exists()) {
+                    file.delete();
+                }
+                mediaMuxer = new MediaMuxer(file.getPath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             } catch (IOException e) {
                 e.printStackTrace();
                 mediaMuxer = null;
