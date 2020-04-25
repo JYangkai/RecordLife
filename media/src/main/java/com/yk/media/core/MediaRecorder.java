@@ -7,6 +7,7 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Surface;
 
 import com.yk.media.core.bean.Section;
@@ -17,8 +18,8 @@ import com.yk.media.core.param.RecordParam;
 import com.yk.media.core.param.VideoEncodeParam;
 import com.yk.media.opengles.egl.EglHelper;
 import com.yk.media.opengles.view.EGLSurfaceView;
+import com.yk.media.utils.FileUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -88,10 +89,6 @@ public class MediaRecorder {
         mediaThread.start();
         glThread.start();
 
-        if (onRecordListener != null) {
-            onRecordListener.onBeginSection();
-        }
-
         return true;
     }
 
@@ -128,14 +125,16 @@ public class MediaRecorder {
     /**
      * 开始合成
      */
-    public void startConcat() {
+    public void startConcat(OnConcatListener onConcatListener) {
         if (sectionList == null || sectionList.size() == 0 ||
                 recordParam == null || TextUtils.isEmpty(recordParam.getPath())) {
+            Log.i("JOJO", "sectionList size:" + sectionList.size());
             return;
         }
         stopConcat();
-        mediaConcat = new MediaConcat(sectionList, recordParam.getPath());
-        mediaConcat.startConcat();
+        mediaConcat = new MediaConcat(recordParam.getPath());
+        mediaConcat.setOnConcatListener(onConcatListener);
+        mediaConcat.startConcat(sectionList);
     }
 
     /**
@@ -146,7 +145,6 @@ public class MediaRecorder {
             mediaConcat.release();
             mediaConcat = null;
         }
-
     }
 
     private class MediaThread extends Thread {
@@ -162,6 +160,9 @@ public class MediaRecorder {
         private String path;
 
         public void init() {
+            if (onRecordListener == null) {
+                return;
+            }
             initMuxer();
             initAudio();
             initVideo();
@@ -169,14 +170,8 @@ public class MediaRecorder {
 
         private void initMuxer() {
             try {
-                String path = recordParam.getPath();
-                String dir = path.substring(0, path.lastIndexOf("."));
-                this.path = dir + "_section_" + sectionList.size() + ".mp4";
-                File file = new File(this.path);
-                if (file.exists()) {
-                    file.delete();
-                }
-                mediaMuxer = new MediaMuxer(file.getPath(), MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                this.path = FileUtils.getSectionFilePath(recordParam.getPath(), sectionList.size());
+                mediaMuxer = new MediaMuxer(this.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             } catch (IOException e) {
                 e.printStackTrace();
                 mediaMuxer = null;
@@ -251,6 +246,9 @@ public class MediaRecorder {
                 }
                 return;
             }
+
+            onRecordListener.onSectionStart();
+
             audioRecord.startRecording();
             audioCodec.start();
             videoCodec.start();
@@ -361,7 +359,7 @@ public class MediaRecorder {
                     .build();
             sectionList.add(section);
             if (onRecordListener != null) {
-                onRecordListener.onEndSection(section);
+                onRecordListener.onSectionStop(section);
             }
         }
     }

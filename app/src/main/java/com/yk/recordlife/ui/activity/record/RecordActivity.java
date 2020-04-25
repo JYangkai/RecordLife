@@ -24,6 +24,7 @@ public class RecordActivity extends BaseActivity {
     private CameraView cameraView;
     private AppCompatButton recordBtn;
     private AppCompatButton switchBtn;
+    private AppCompatButton concatBtn;
 
     private CameraManager cameraManager;
 
@@ -45,6 +46,7 @@ public class RecordActivity extends BaseActivity {
         cameraView = findViewById(R.id.camera_view);
         recordBtn = findViewById(R.id.record_btn);
         switchBtn = findViewById(R.id.switch_btn);
+        concatBtn = findViewById(R.id.concat_btn);
     }
 
     @Override
@@ -77,6 +79,13 @@ public class RecordActivity extends BaseActivity {
                         recordBtn.setText("停止");
                     }
                 }
+            }
+        });
+
+        concatBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                viewModel.startConcat();
             }
         });
 

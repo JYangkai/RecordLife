@@ -7,6 +7,7 @@ import android.media.MediaMuxer;
 import android.text.TextUtils;
 
 import com.yk.media.core.bean.Section;
+import com.yk.media.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,19 +15,19 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 public class MediaConcat {
-    private String concatPath;
+    private String path;
 
     private List<Section> sectionList;
 
     private ConcatThread concatThread;
 
-    public MediaConcat(List<Section> sectionList, String concatPath) {
-        this.sectionList = sectionList;
-        this.concatPath = concatPath;
+    public MediaConcat(String path) {
+        this.path = path;
     }
 
-    public void startConcat() {
+    public void startConcat(List<Section> sectionList) {
         release();
+        this.sectionList = sectionList;
         concatThread = new ConcatThread();
         concatThread.init();
         concatThread.start();
@@ -34,7 +35,7 @@ public class MediaConcat {
 
     public void release() {
         if (concatThread != null) {
-            concatThread.endConcat();
+            concatThread.release();
             concatThread = null;
         }
         deleteAllSections();
@@ -60,7 +61,11 @@ public class MediaConcat {
         private int videoTrack = -1;
 
         void init() {
+            if (onConcatListener == null) {
+                return;
+            }
             if (sectionList == null || sectionList.size() == 0) {
+                onConcatListener.onConcatError("sectionList is empty");
                 return;
             }
             // 第一步，获取MediaFormat
@@ -103,18 +108,21 @@ public class MediaConcat {
             }
 
             if (audioFormat == null || videoFormat == null) {
+                onConcatListener.onConcatError("audioFormat or videoFormat is null");
                 return;
             }
 
             // 第二步，初始化MediaMuxer
             try {
-                mediaMuxer = new MediaMuxer(concatPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                path = FileUtils.getFilePath(path);
+                mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             } catch (IOException e) {
                 e.printStackTrace();
                 mediaMuxer = null;
             }
 
             if (mediaMuxer == null) {
+                onConcatListener.onConcatError("mediaMuxer is null");
                 return;
             }
 
@@ -122,26 +130,42 @@ public class MediaConcat {
             videoTrack = mediaMuxer.addTrack(videoFormat);
         }
 
-        void endConcat() {
+        void release() {
             if (mediaMuxer == null) {
                 return;
             }
             mediaMuxer.stop();
             mediaMuxer.release();
+            mediaMuxer = null;
+
+            deleteAllSections();
+
+            onConcatListener.onConcatComplete(path);
         }
 
         @Override
         public void run() {
             if (mediaMuxer == null || audioTrack == -1 || videoTrack == -1 ||
                     sectionList == null || sectionList.size() == 0) {
+                onConcatListener.onConcatError("concat is not ready");
                 return;
             }
+
+            onConcatListener.onConcatStart();
+
+            int size = sectionList.size();
+            if (size == 1) {
+                onConcatListener.onConcatComplete(sectionList.get(0).getPath());
+                return;
+            }
+
             mediaMuxer.start();
 
             long audioPts = 0;
             long videoPts = 0;
 
-            for (Section section : sectionList) {
+            for (int i = 0; i < size; i++) {
+                Section section = sectionList.get(i);
                 String path = section.getPath();
 
                 // 获取音频轨道
@@ -213,8 +237,9 @@ public class MediaConcat {
                         videoExtractor.release();
                     }
                 }
+                onConcatListener.onConcatProgress((float) i / size);
             }
-            endConcat();
+            release();
         }
 
         private int getTrackIndex(MediaExtractor extractor, String mime) {
@@ -230,5 +255,11 @@ public class MediaConcat {
             }
             return -1;
         }
+    }
+
+    private OnConcatListener onConcatListener;
+
+    public void setOnConcatListener(OnConcatListener onConcatListener) {
+        this.onConcatListener = onConcatListener;
     }
 }

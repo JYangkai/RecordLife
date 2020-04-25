@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
 
 import com.yk.media.core.MediaRecorder;
+import com.yk.media.core.OnConcatListener;
 import com.yk.media.core.OnRecordListener;
 import com.yk.media.core.bean.Section;
 import com.yk.media.core.param.AudioEncodeParam;
@@ -24,7 +25,7 @@ import java.io.File;
 
 import javax.microedition.khronos.egl.EGLContext;
 
-public class RecordViewModel extends BaseViewModel implements OnRecordListener {
+public class RecordViewModel extends BaseViewModel implements OnRecordListener, OnConcatListener {
     private MediaRecorder mediaRecorder;
 
     private MicParam micParam;
@@ -109,29 +110,59 @@ public class RecordViewModel extends BaseViewModel implements OnRecordListener {
         }
     }
 
+    void startConcat() {
+        if (mediaRecorder != null) {
+            mediaRecorder.startConcat(this);
+        }
+    }
+
+    //-----------------------------------录制相关-----------------------------------------------
+
     @Override
-    public void onBeginSection() {
-        Log.i("JOJO", "on start record");
+    public void onSectionStart() {
+        Log.i("JOJO", "onSectionStart");
     }
 
     @Override
-    public void onEndSection(Section section) {
-        Log.i("JOJO", "on stop record:" + section.getPath());
-        recordResult.postValue(section.getPath());
+    public void onSectionStop(Section section) {
+        Log.i("JOJO", "onSectionStop:" + section.getPath());
     }
 
     @Override
-    public void onConcatStart() {
-
-    }
-
-    @Override
-    public void onConcatEnd(String path) {
-
+    public void onRecordStop(String path) {
+        Log.i("JOJO", "onRecordStop:" + path);
     }
 
     @Override
     public void onRecordError(String error) {
-        Log.i("JOJO", "record error:" + error);
+        Log.i("JOJO", "onRecordError:" + error);
+    }
+
+    //-----------------------------------合成相关-----------------------------------------------
+
+    @Override
+    public void onConcatStart() {
+        Log.i("JOJO", "onConcatStart");
+    }
+
+    @Override
+    public void onConcatProgress(float progress) {
+        Log.i("JOJO", "onConcatProgress:" + progress);
+    }
+
+    @Override
+    public void onConcatStop() {
+        Log.i("JOJO", "onConcatStop");
+    }
+
+    @Override
+    public void onConcatComplete(String path) {
+        Log.i("JOJO", "onConcatComplete:" + path);
+        recordResult.postValue(path);
+    }
+
+    @Override
+    public void onConcatError(String error) {
+        Log.i("JOJO", "onConcatError:" + error);
     }
 }
