@@ -8,6 +8,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
 
+import com.yk.media.core.MediaConcat;
 import com.yk.media.core.MediaRecorder;
 import com.yk.media.core.OnConcatListener;
 import com.yk.media.core.OnRecordListener;
@@ -19,20 +20,28 @@ import com.yk.media.core.param.RecordParam;
 import com.yk.media.core.param.VideoEncodeParam;
 import com.yk.media.opengles.renderer.RecordRenderer;
 import com.yk.media.opengles.view.EGLSurfaceView;
+import com.yk.media.utils.FileUtils;
 import com.yk.recordlife.ui.base.BaseViewModel;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.microedition.khronos.egl.EGLContext;
 
 public class RecordViewModel extends BaseViewModel implements OnRecordListener, OnConcatListener {
+    private static final String TAG = RecordViewModel.class.getSimpleName();
+
     private MediaRecorder mediaRecorder;
+    private MediaConcat mediaConcat;
 
     private MicParam micParam;
     private CameraParam cameraParam;
     private AudioEncodeParam audioEncodeParam;
     private VideoEncodeParam videoEncodeParam;
     private RecordParam recordParam;
+
+    private List<Section> sectionList = new ArrayList<>();
 
     MutableLiveData<String> recordResult = new MutableLiveData<>();
 
@@ -52,7 +61,7 @@ public class RecordViewModel extends BaseViewModel implements OnRecordListener, 
         }
 
         // CameraParam的EGLContext和TextureId必须每次都传，因为EGL环境会在每次
-        // 打开摄像头的时候
+        // 打开摄像头的时候变化
         if (cameraParam == null || cameraParam.isEmpty()) {
             cameraParam = new CameraParam.Builder()
                     .setFacing(facing)
@@ -97,72 +106,108 @@ public class RecordViewModel extends BaseViewModel implements OnRecordListener, 
         mediaRecorder.prepare(micParam, cameraParam, audioEncodeParam, videoEncodeParam, recordParam);
     }
 
-    boolean beginSection(int facing, EGLContext eglContext, int textureId,
-                         int width, int height) {
-        endSection();
+    boolean startRecord(int facing, EGLContext eglContext, int textureId,
+                        int width, int height) {
+        stopRecord();
         initRecordParam(facing, eglContext, textureId, width, height);
-        return mediaRecorder.beginSection();
+        return mediaRecorder.startRecord();
     }
 
-    void endSection() {
+    void stopRecord() {
+        Log.i(TAG, "stop record");
         if (mediaRecorder != null) {
-            mediaRecorder.endSection();
+            mediaRecorder.stopRecord();
+        }
+    }
+
+    private void initMediaConcat() {
+        if (mediaConcat == null) {
+            mediaConcat = new MediaConcat();
+            mediaConcat.setOnConcatListener(this);
         }
     }
 
     void startConcat() {
-        if (mediaRecorder != null) {
-            mediaRecorder.startConcat(this);
+        stopConcat();
+        initMediaConcat();
+        if (mediaConcat != null) {
+            mediaConcat.startConcat(recordParam.getPath(), sectionList);
         }
     }
 
-    //-----------------------------------录制相关-----------------------------------------------
+    void stopConcat() {
+        if (mediaConcat != null) {
+            mediaConcat.release();
+        }
+    }
+
+    void release() {
+        stopRecord();
+        stopConcat();
+        if (mediaRecorder != null) {
+            mediaRecorder.reset();
+        }
+        if (sectionList == null || sectionList.size() == 0) {
+            return;
+        }
+        for (Section section : sectionList) {
+            FileUtils.deleteFile(section.getPath());
+        }
+        sectionList.clear();
+        sectionList = null;
+    }
+
+    //----------------------------------录制相关-------------------------------------------------
 
     @Override
-    public void onSectionStart() {
-        Log.i("JOJO", "onSectionStart");
+    public void onRecordStart() {
+        Log.i(TAG, "onRecordStart");
     }
 
     @Override
-    public void onSectionStop(Section section) {
-        Log.i("JOJO", "onSectionStop:" + section.getPath());
+    public void onRecordTime(long time) {
+        Log.i(TAG, "onRecordTime:" + time);
     }
 
     @Override
-    public void onRecordStop(String path) {
-        Log.i("JOJO", "onRecordStop:" + path);
+    public void onRecordStop(Section section) {
+        Log.i(TAG, "onRecordStop:" + section.getPath());
+        if (sectionList == null) {
+            sectionList = new ArrayList<>();
+        }
+        sectionList.add(section);
     }
 
     @Override
     public void onRecordError(String error) {
-        Log.i("JOJO", "onRecordError:" + error);
+        Log.i(TAG, "onRecordError:" + error);
     }
 
-    //-----------------------------------合成相关-----------------------------------------------
+    //----------------------------------合成相关-------------------------------------------------
 
     @Override
     public void onConcatStart() {
-        Log.i("JOJO", "onConcatStart");
+        Log.i(TAG, "onConcatStart");
     }
 
     @Override
     public void onConcatProgress(float progress) {
-        Log.i("JOJO", "onConcatProgress:" + progress);
+        Log.i(TAG, "onConcatProgress:" + progress);
     }
 
     @Override
     public void onConcatStop() {
-        Log.i("JOJO", "onConcatStop");
+        Log.i(TAG, "onConcatStop");
     }
 
     @Override
     public void onConcatComplete(String path) {
-        Log.i("JOJO", "onConcatComplete:" + path);
+        Log.i(TAG, "onConcatComplete:" + path);
         recordResult.postValue(path);
     }
 
     @Override
     public void onConcatError(String error) {
-        Log.i("JOJO", "onConcatError:" + error);
+        Log.i(TAG, "onConcatError:" + error);
     }
 }

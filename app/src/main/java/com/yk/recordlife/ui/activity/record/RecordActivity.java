@@ -67,11 +67,11 @@ public class RecordActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 if (isRecord) {
-                    viewModel.endSection();
+                    viewModel.stopRecord();
                     isRecord = false;
                     recordBtn.setText("录制");
                 } else {
-                    boolean isStart = viewModel.beginSection(cameraManager.getFacing(),
+                    boolean isStart = viewModel.startRecord(cameraManager.getFacing(),
                             cameraView.getEglContext(), cameraView.getTextureId(),
                             cameraView.getFinalWidth(), cameraView.getFinalHeight());
                     if (isStart) {
@@ -119,7 +119,7 @@ public class RecordActivity extends BaseActivity {
             cameraManager.closeCamera();
         }
         if (viewModel != null) {
-            viewModel.endSection();
+            viewModel.release();
         }
     }
 }

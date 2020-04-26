@@ -7,6 +7,7 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Surface;
 
 import com.yk.media.core.bean.Section;
@@ -25,6 +26,8 @@ import java.nio.ByteBuffer;
 import javax.microedition.khronos.egl.EGLContext;
 
 public class MediaRecorder {
+    private static final String TAG = MediaRecorder.class.getSimpleName();
+
     private MicParam micParam;
     private CameraParam cameraParam;
 
@@ -65,15 +68,18 @@ public class MediaRecorder {
      * @return 启动成功
      */
     public boolean startRecord() {
+        Log.i(TAG, "start record");
         if (checkState()) {
             if (onRecordListener != null) {
-
+                onRecordListener.onRecordError("开始录制失败，请检查传入参数是否完整");
+            }
             return false;
         }
         stopRecord();
 
         // 初始化MediaThread
         mediaThread = new MediaThread();
+        mediaThread.init();
 
         // 初始化GLThread
         glThread = new GLThread();
@@ -101,6 +107,10 @@ public class MediaRecorder {
         }
     }
 
+    public void reset() {
+        recordIndex = 0;
+    }
+
     private class MediaThread extends Thread {
         private MediaMuxer mediaMuxer;
 
@@ -113,7 +123,7 @@ public class MediaRecorder {
 
         private String path;
 
-        private void init() {
+        void init() {
             initMuxer();
             initAudio();
             initVideo();
@@ -123,6 +133,7 @@ public class MediaRecorder {
             try {
                 this.path = FileUtils.getRecordFilePath(recordParam.getPath(), recordIndex++);
                 if (TextUtils.isEmpty(path)) {
+                    Log.i(TAG, "path is empty");
                     return;
                 }
                 mediaMuxer = new MediaMuxer(this.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
@@ -187,7 +198,6 @@ public class MediaRecorder {
 
         @Override
         public void run() {
-            init();
             boolean isStartMuxer = false;
             isStopRecord = false;
             long audioPts = 0;
