@@ -3,11 +3,11 @@ package com.yk.media.core;
 import com.yk.media.core.bean.Section;
 
 public interface OnRecordListener {
-    void onSectionStart();
+    void onRecordStart();
 
-    void onSectionStop(Section section);
+    void onRecordTime(long time);
 
-    void onRecordStop(String path);
+    void onRecordStop(Section section);
 
     void onRecordError(String error);
 }

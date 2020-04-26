@@ -7,20 +7,28 @@ import java.io.File;
 public class FileUtils {
 
     public static String getFilePath(String path) {
-        if (TextUtils.isEmpty(path)) {
-            return null;
-        }
         File file = new File(path);
         if (file.exists()) {
-            file.exists();
+            file.delete();
         }
         return file.getPath();
     }
 
-    public static String getSectionFilePath(String path, int sectionIndex) {
+    public static String getRecordFilePath(String path, int index) {
+        if (TextUtils.isEmpty(path) || !path.contains(".")) {
+            return null;
+        }
         String dir = path.substring(0, path.lastIndexOf("."));
-        String sectionPath = dir + "_section_" + sectionIndex + ".mp4";
-        return getFilePath(sectionPath);
+        String recordPath = dir + "_section_" + index + ".mp4";
+        return getFilePath(recordPath);
+    }
+
+    public static boolean deleteFile(String path) {
+        File file = new File(path);
+        if (file.exists()) {
+            return file.delete();
+        }
+        return false;
     }
 
 }

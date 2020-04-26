@@ -5,35 +5,42 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.yk.media.core.bean.Section;
 import com.yk.media.utils.FileUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
 public class MediaConcat {
+    private static final String TAG = MediaConcat.class.getSimpleName();
+
+    // 合成的录制
     private String path;
-
+    // 所有片段
     private List<Section> sectionList;
-
+    // 合成线程
     private ConcatThread concatThread;
 
-    public MediaConcat(String path) {
-        this.path = path;
-    }
-
-    public void startConcat(List<Section> sectionList) {
+    /**
+     * 开始合成
+     */
+    public void startConcat(String path, List<Section> sectionList) {
         release();
+        Log.i(TAG, "startConcat:" + path + " sectionList:" + sectionList);
+        this.path = path;
         this.sectionList = sectionList;
         concatThread = new ConcatThread();
-        concatThread.init();
         concatThread.start();
     }
 
+    /**
+     * 停止合成
+     */
     public void release() {
+        Log.i(TAG, "release");
         if (concatThread != null) {
             concatThread.release();
             concatThread = null;
@@ -41,31 +48,61 @@ public class MediaConcat {
         deleteAllSections();
     }
 
+    /**
+     * 删除所有片段
+     */
     private void deleteAllSections() {
+        Log.i(TAG, "delete all sections");
         if (sectionList == null || sectionList.size() == 0) {
+            Log.i(TAG, "section list is empty");
             return;
         }
         for (Section section : sectionList) {
-            File file = new File(section.getPath());
-            if (file.exists()) {
-                file.delete();
-            }
+            FileUtils.deleteFile(section.getPath());
         }
         sectionList.clear();
+        sectionList = null;
     }
 
+    /**
+     * 合成线程
+     */
     private class ConcatThread extends Thread {
         private MediaMuxer mediaMuxer;
 
         private int audioTrack = -1;
         private int videoTrack = -1;
 
-        void init() {
-            if (onConcatListener == null) {
+        /**
+         * release
+         */
+        void release() {
+            Log.i(TAG, "concat thread release");
+            if (mediaMuxer == null) {
+                Log.i(TAG, "concat thread mediaMuxer is null");
                 return;
             }
+            mediaMuxer.stop();
+            mediaMuxer.release();
+            mediaMuxer = null;
+
+            deleteAllSections();
+
+            if (onConcatListener != null) {
+                onConcatListener.onConcatComplete(path);
+            }
+        }
+
+        /**
+         * 初始化
+         */
+        private void init() {
+            Log.i(TAG, "concat thread init");
             if (sectionList == null || sectionList.size() == 0) {
-                onConcatListener.onConcatError("sectionList is empty");
+                Log.i(TAG, "concat thread sectionList is empty");
+                if (onConcatListener != null) {
+                    onConcatListener.onConcatError("sectionList is empty");
+                }
                 return;
             }
             // 第一步，获取MediaFormat
@@ -108,11 +145,21 @@ public class MediaConcat {
             }
 
             if (audioFormat == null || videoFormat == null) {
-                onConcatListener.onConcatError("audioFormat or videoFormat is null");
+                Log.i(TAG, "concat thread audioFormat or videoFormat is null");
+                if (onConcatListener != null) {
+                    onConcatListener.onConcatError("audioFormat or videoFormat is null");
+                }
                 return;
             }
 
             // 第二步，初始化MediaMuxer
+            if (TextUtils.isEmpty(path)) {
+                Log.i(TAG, "concat thread path is empty");
+                if (onConcatListener != null) {
+                    onConcatListener.onConcatError("path is empty");
+                }
+                return;
+            }
             try {
                 path = FileUtils.getFilePath(path);
                 mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
@@ -122,7 +169,10 @@ public class MediaConcat {
             }
 
             if (mediaMuxer == null) {
-                onConcatListener.onConcatError("mediaMuxer is null");
+                Log.i(TAG, "concat thread mediaMuxer is null");
+                if (onConcatListener != null) {
+                    onConcatListener.onConcatError("mediaMuxer is null");
+                }
                 return;
             }
 
@@ -130,32 +180,28 @@ public class MediaConcat {
             videoTrack = mediaMuxer.addTrack(videoFormat);
         }
 
-        void release() {
-            if (mediaMuxer == null) {
-                return;
-            }
-            mediaMuxer.stop();
-            mediaMuxer.release();
-            mediaMuxer = null;
-
-            deleteAllSections();
-
-            onConcatListener.onConcatComplete(path);
-        }
-
         @Override
         public void run() {
+            init();
             if (mediaMuxer == null || audioTrack == -1 || videoTrack == -1 ||
                     sectionList == null || sectionList.size() == 0) {
-                onConcatListener.onConcatError("concat is not ready");
+                Log.i(TAG, "concat thread concat is not ready");
+                if (onConcatListener != null) {
+                    onConcatListener.onConcatError("concat is not ready");
+                }
                 return;
             }
 
-            onConcatListener.onConcatStart();
+            if (onConcatListener != null) {
+                onConcatListener.onConcatStart();
+            }
 
             int size = sectionList.size();
             if (size == 1) {
-                onConcatListener.onConcatComplete(sectionList.get(0).getPath());
+                Log.i(TAG, "concat thread concat complete");
+                if (onConcatListener != null) {
+                    onConcatListener.onConcatComplete(sectionList.get(0).getPath());
+                }
                 return;
             }
 
@@ -167,6 +213,7 @@ public class MediaConcat {
             for (int i = 0; i < size; i++) {
                 Section section = sectionList.get(i);
                 String path = section.getPath();
+                Log.i(TAG, "concat thread write data:" + path + " index:" + i);
 
                 // 获取音频轨道
                 MediaExtractor audioExtractor;
@@ -237,12 +284,15 @@ public class MediaConcat {
                         videoExtractor.release();
                     }
                 }
-                onConcatListener.onConcatProgress((float) i / size);
+                if (onConcatListener != null) {
+                    onConcatListener.onConcatProgress((float) (i + 1) / size);
+                }
             }
             release();
         }
 
         private int getTrackIndex(MediaExtractor extractor, String mime) {
+            Log.i(TAG, "get track index:" + mime);
             if (extractor == null || TextUtils.isEmpty(mime)) {
                 return -1;
             }
