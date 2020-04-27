@@ -43,6 +43,7 @@ public class MediaRecorder {
     public void prepare(MicParam micParam, CameraParam cameraParam,
                         AudioEncodeParam audioEncodeParam, VideoEncodeParam videoEncodeParam,
                         RecordParam recordParam) {
+        Log.i(TAG, "prepare");
         this.micParam = micParam;
         this.cameraParam = cameraParam;
         this.audioEncodeParam = audioEncodeParam;
@@ -54,6 +55,7 @@ public class MediaRecorder {
      * 检查参数是否为空
      */
     private boolean checkState() {
+        Log.i(TAG, "check state");
         return micParam.isEmpty() || cameraParam.isEmpty() ||
                 audioEncodeParam.isEmpty() || videoEncodeParam.isEmpty() ||
                 recordParam.isEmpty();
@@ -97,6 +99,7 @@ public class MediaRecorder {
      * 停止录制
      */
     public void stopRecord() {
+        Log.i(TAG, "stopRecord");
         if (mediaThread != null) {
             mediaThread.stopRecord();
             mediaThread = null;
@@ -108,6 +111,7 @@ public class MediaRecorder {
     }
 
     public void reset() {
+        Log.i(TAG, "reset");
         recordIndex = 0;
     }
 
@@ -124,19 +128,22 @@ public class MediaRecorder {
         private String path;
 
         void init() {
+            Log.i(TAG, "media thread init");
             initMuxer();
             initAudio();
             initVideo();
         }
 
         private void initMuxer() {
+            Log.i(TAG, "media thread initMuxer");
             try {
-                this.path = FileUtils.getRecordFilePath(recordParam.getPath(), recordIndex++);
+                path = FileUtils.getRecordFilePath(recordParam.getPath(), recordIndex++);
                 if (TextUtils.isEmpty(path)) {
                     Log.i(TAG, "path is empty");
                     return;
                 }
-                mediaMuxer = new MediaMuxer(this.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                Log.i(TAG, "media thread path:" + path);
+                mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             } catch (IOException e) {
                 e.printStackTrace();
                 mediaMuxer = null;
@@ -144,6 +151,7 @@ public class MediaRecorder {
         }
 
         private void initAudio() {
+            Log.i(TAG, "media thread initAudio");
             bufferSizeInBytes = AudioRecord.getMinBufferSize(micParam.getSampleRateInHz(),
                     micParam.getChannelConfig(), micParam.getAudioFormat());
             audioRecord = new AudioRecord(micParam.getAudioSource(), micParam.getSampleRateInHz(),
@@ -163,6 +171,7 @@ public class MediaRecorder {
         }
 
         private void initVideo() {
+            Log.i(TAG, "media thread initVideo");
             try {
                 videoCodec = MediaCodec.createEncoderByType(videoEncodeParam.getMime());
                 MediaFormat format = MediaFormat.createVideoFormat(videoEncodeParam.getMime(),
@@ -192,13 +201,18 @@ public class MediaRecorder {
 
         private boolean isStopRecord;
 
+        /**
+         * 结束录制线程
+         */
         void stopRecord() {
+            Log.i(TAG, "media thread stopRecord");
             isStopRecord = true;
         }
 
         @Override
         public void run() {
-            boolean isStartMuxer = false;
+            Log.i(TAG, "media thread run");
+            boolean isStartMuxer = false; // 合成是否开始
             isStopRecord = false;
             long audioPts = 0;
             long videoPts = 0;
@@ -293,11 +307,13 @@ public class MediaRecorder {
         }
 
         private boolean checkState() {
+            Log.i(TAG,"media thread checkState");
             return audioRecord == null || surface == null ||
                     audioCodec == null || videoCodec == null;
         }
 
         private void release() {
+            Log.i(TAG,"media thread release");
             if (audioRecord != null) {
                 audioRecord.stop();
                 audioRecord.release();
