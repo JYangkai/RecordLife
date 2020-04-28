@@ -1,6 +1,6 @@
 package com.yk.media.core.param;
 
-import com.yk.media.opengles.view.EGLSurfaceView;
+import com.yk.media.opengles.renderer.RecordRenderer;
 
 import javax.microedition.khronos.egl.EGLContext;
 
@@ -9,7 +9,7 @@ public class CameraParam {
     public static final int FACING_BACK = 1;
 
     private EGLContext eglContext;
-    private EGLSurfaceView.Renderer renderer;
+    private RecordRenderer renderer;
     private int renderMode = -1;
     private int facing = -1;
 
@@ -24,11 +24,11 @@ public class CameraParam {
         this.eglContext = eglContext;
     }
 
-    public EGLSurfaceView.Renderer getRenderer() {
+    public RecordRenderer getRenderer() {
         return renderer;
     }
 
-    public void setRenderer(EGLSurfaceView.Renderer renderer) {
+    public void setRenderer(RecordRenderer renderer) {
         this.renderer = renderer;
     }
 
@@ -60,7 +60,7 @@ public class CameraParam {
             return this;
         }
 
-        public Builder setRenderer(EGLSurfaceView.Renderer renderer) {
+        public Builder setRenderer(RecordRenderer renderer) {
             cameraParam.setRenderer(renderer);
             return this;
         }
