@@ -47,6 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
+        android:layout_margin="32dp"
         android:checked="false"
         android:text="开启美颜"
         android:textColor="@color/colorWhite" />
