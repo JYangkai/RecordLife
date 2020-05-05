@@ -58,6 +58,7 @@ public class Camera {
     private int aPosLocation;
     private int aCoordLocation;
     private int uSamplerLocation;
+    private int uStepLocation;
 
     public void draw() {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
@@ -67,6 +68,7 @@ public class Camera {
         aPosLocation = GLES20.glGetAttribLocation(program, "aPos");
         aCoordLocation = GLES20.glGetAttribLocation(program, "aCoordinate");
         uSamplerLocation = GLES20.glGetUniformLocation(program, "uSampler");
+        uStepLocation = GLES20.glGetUniformLocation(program, "uStep");
 
         // 激活纹理单元
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
@@ -81,6 +83,13 @@ public class Camera {
         GLES20.glEnableVertexAttribArray(aCoordLocation);
         GLES20.glVertexAttribPointer(aCoordLocation, 2, GLES20.GL_FLOAT, false, 0, coordinateBuffer);
 
+        // 传入宽高
+        if (isOpenBeauty) {
+            GLES20.glUniform2f(uStepLocation, (float) 2 / width, (float) 2 / height);
+        } else {
+            GLES20.glUniform2f(uStepLocation, 0, 0);
+        }
+
         // 绘制
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
@@ -88,5 +97,11 @@ public class Camera {
         GLES20.glDisableVertexAttribArray(aPosLocation);
         GLES20.glDisableVertexAttribArray(aCoordLocation);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+    }
+
+    private boolean isOpenBeauty = false;
+
+    public void openBeauty(boolean isOpenBeauty) {
+        this.isOpenBeauty = isOpenBeauty;
     }
 }

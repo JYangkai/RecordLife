@@ -80,4 +80,10 @@ public class CameraRenderer implements EGLSurfaceView.Renderer {
         }
         return cameraFbo.getFboTextureId();
     }
+
+    public void openBeauty(boolean isOpenBeauty) {
+        if (camera != null) {
+            camera.openBeauty(isOpenBeauty);
+        }
+    }
 }

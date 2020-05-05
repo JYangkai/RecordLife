@@ -93,4 +93,10 @@ public class CameraView extends EGLSurfaceView {
         }
         setMeasuredDimension(finalWidth, finalHeight);
     }
+
+    public void openBeauty(boolean isOpenBeauty) {
+        if (renderer != null) {
+            renderer.openBeauty(isOpenBeauty);
+        }
+    }
 }

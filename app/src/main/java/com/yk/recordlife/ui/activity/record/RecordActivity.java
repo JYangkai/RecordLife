@@ -4,10 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.CompoundButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
+import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.camera.core.Preview;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -25,6 +27,7 @@ public class RecordActivity extends BaseActivity {
     private AppCompatButton recordBtn;
     private AppCompatButton switchBtn;
     private AppCompatButton concatBtn;
+    private AppCompatCheckBox beautyBox;
 
     private CameraManager cameraManager;
 
@@ -47,6 +50,7 @@ public class RecordActivity extends BaseActivity {
         recordBtn = findViewById(R.id.record_btn);
         switchBtn = findViewById(R.id.switch_btn);
         concatBtn = findViewById(R.id.concat_btn);
+        beautyBox = findViewById(R.id.beauty_box);
     }
 
     @Override
@@ -56,6 +60,15 @@ public class RecordActivity extends BaseActivity {
 
     @Override
     protected void bindEvent() {
+        beautyBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (cameraView != null) {
+                    cameraView.openBeauty(isChecked);
+                }
+            }
+        });
+
         switchBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

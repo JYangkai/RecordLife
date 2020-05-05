@@ -41,4 +41,14 @@
         android:layout_marginBottom="64dp"
         android:text="合成" />
 
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/beauty_box"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:checked="false"
+        android:text="开启美颜"
+        android:textColor="@color/colorWhite" />
+
 </RelativeLayout>
