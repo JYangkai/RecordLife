@@ -2,6 +2,7 @@ package com.yk.media.opengles.draw;
 
 import android.content.Context;
 import android.opengl.GLES20;
+import android.util.Log;
 
 import com.yk.media.utils.OpenGLESUtils;
 import com.yk.media.utils.ShaderCodeUtils;
@@ -102,6 +103,7 @@ public class Camera {
     private boolean isOpenBeauty = false;
 
     public void openBeauty(boolean isOpenBeauty) {
+        Log.i("JOJO", "camera openBeauty:" + isOpenBeauty);
         this.isOpenBeauty = isOpenBeauty;
     }
 }

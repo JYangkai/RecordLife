@@ -12,6 +12,7 @@ public class CameraParam {
     private RecordRenderer renderer;
     private int renderMode = -1;
     private int facing = -1;
+    private boolean isOpenBeauty;
 
     private CameraParam() {
     }
@@ -48,6 +49,14 @@ public class CameraParam {
         this.facing = facing;
     }
 
+    public boolean isOpenBeauty() {
+        return isOpenBeauty;
+    }
+
+    public void setOpenBeauty(boolean openBeauty) {
+        isOpenBeauty = openBeauty;
+    }
+
     public static class Builder {
         private CameraParam cameraParam;
 
@@ -72,6 +81,11 @@ public class CameraParam {
 
         public Builder setFacing(int facing) {
             cameraParam.setFacing(facing);
+            return this;
+        }
+
+        public Builder isOpenBeauty(boolean isOpenBeauty) {
+            cameraParam.setOpenBeauty(isOpenBeauty);
             return this;
         }
 

@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.Log;
 
 import com.yk.media.opengles.draw.Camera;
 import com.yk.media.opengles.view.EGLSurfaceView;
@@ -35,6 +36,13 @@ public class RecordRenderer implements EGLSurfaceView.Renderer {
         camera = new Camera();
         startBackground();
         startGetBitmapTimer();
+    }
+
+    public void openBeauty(boolean isOpenBeauty) {
+        if (camera != null) {
+            Log.i("JOJO", "openBeauty:" + isOpenBeauty);
+            camera.openBeauty(isOpenBeauty);
+        }
     }
 
     private Handler handler;
@@ -103,7 +111,7 @@ public class RecordRenderer implements EGLSurfaceView.Renderer {
             public void run() {
                 isGetBitmap = true;
             }
-        }, GET_BITMAP_TIME);
+        }, 0, GET_BITMAP_TIME);
     }
 
     private void stopGetBitmapTimer() {

@@ -66,6 +66,9 @@ public class RecordActivity extends BaseActivity {
                 if (cameraView != null) {
                     cameraView.openBeauty(isChecked);
                 }
+                if (viewModel != null) {
+                    viewModel.openBeauty(isChecked);
+                }
             }
         });
 

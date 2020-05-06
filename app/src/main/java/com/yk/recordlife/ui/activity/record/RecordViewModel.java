@@ -43,10 +43,21 @@ public class RecordViewModel extends BaseViewModel implements OnRecordListener, 
 
     private List<Section> sectionList = new ArrayList<>();
 
+    private RecordRenderer recordRenderer;
+
+    private boolean isOpenBeauty = false;
+
     MutableLiveData<String> recordResult = new MutableLiveData<>();
 
     public RecordViewModel(@NonNull Application application) {
         super(application);
+    }
+
+    void openBeauty(boolean isOpenBeauty) {
+        this.isOpenBeauty = isOpenBeauty;
+        if (recordRenderer != null) {
+            recordRenderer.openBeauty(isOpenBeauty);
+        }
     }
 
     private void initRecordParam(int facing, EGLContext eglContext, int textureId,
@@ -69,7 +80,13 @@ public class RecordViewModel extends BaseViewModel implements OnRecordListener, 
                     .build();
         }
         cameraParam.setEglContext(eglContext);
-        cameraParam.setRenderer(new RecordRenderer(context, textureId));
+        if (recordRenderer != null) {
+            recordRenderer.release();
+            recordRenderer = null;
+        }
+        recordRenderer = new RecordRenderer(context, textureId);
+        recordRenderer.openBeauty(isOpenBeauty);
+        cameraParam.setRenderer(recordRenderer);
 
         if (audioEncodeParam == null || audioEncodeParam.isEmpty()) {
             audioEncodeParam = new AudioEncodeParam.Builder()
@@ -108,7 +125,6 @@ public class RecordViewModel extends BaseViewModel implements OnRecordListener, 
 
     boolean startRecord(int facing, EGLContext eglContext, int textureId,
                         int width, int height) {
-        stopRecord();
         initRecordParam(facing, eglContext, textureId, width, height);
         return mediaRecorder.startRecord();
     }
@@ -128,7 +144,6 @@ public class RecordViewModel extends BaseViewModel implements OnRecordListener, 
     }
 
     void startConcat() {
-        stopConcat();
         initMediaConcat();
         if (mediaConcat != null) {
             mediaConcat.startConcat(recordParam.getPath(), sectionList);
@@ -137,7 +152,7 @@ public class RecordViewModel extends BaseViewModel implements OnRecordListener, 
 
     void stopConcat() {
         if (mediaConcat != null) {
-            mediaConcat.release();
+            mediaConcat.stopConcat();
         }
     }
 
@@ -171,7 +186,7 @@ public class RecordViewModel extends BaseViewModel implements OnRecordListener, 
 
     @Override
     public void onRecordStop(Section section) {
-        Log.i(TAG, "onRecordStop:" + section.getPath());
+        Log.i(TAG, "onRecordStop:" + section.getPath() + " bitmap list size:");
         if (sectionList == null) {
             sectionList = new ArrayList<>();
         }

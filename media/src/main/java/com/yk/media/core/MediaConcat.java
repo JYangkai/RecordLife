@@ -28,7 +28,7 @@ public class MediaConcat {
      * 开始合成
      */
     public void startConcat(String path, List<Section> sectionList) {
-        release();
+        stopConcat();
         Log.i(TAG, "startConcat:" + path + " sectionList:" + sectionList);
         this.path = path;
         this.sectionList = sectionList;
@@ -39,10 +39,10 @@ public class MediaConcat {
     /**
      * 停止合成
      */
-    public void release() {
+    public void stopConcat() {
         Log.i(TAG, "release");
         if (concatThread != null) {
-            concatThread.release();
+            concatThread.stopConcat();
             concatThread = null;
         }
         deleteAllSections();
@@ -76,7 +76,7 @@ public class MediaConcat {
         /**
          * release
          */
-        void release() {
+        void stopConcat() {
             Log.i(TAG, "concat thread release");
             if (mediaMuxer == null) {
                 Log.i(TAG, "concat thread mediaMuxer is null");
@@ -182,9 +182,18 @@ public class MediaConcat {
 
         @Override
         public void run() {
+            if (sectionList != null && sectionList.size() == 1) {
+                Log.i(TAG, "concat thread sectionList size is 1");
+                if (onConcatListener != null) {
+                    onConcatListener.onConcatProgress(1);
+                    onConcatListener.onConcatComplete(sectionList.get(0).getPath());
+                }
+                return;
+            }
+
             init();
-            if (mediaMuxer == null || audioTrack == -1 || videoTrack == -1 ||
-                    sectionList == null || sectionList.size() == 0) {
+
+            if (checkState()) {
                 Log.i(TAG, "concat thread concat is not ready");
                 if (onConcatListener != null) {
                     onConcatListener.onConcatError("concat is not ready");
@@ -196,19 +205,12 @@ public class MediaConcat {
                 onConcatListener.onConcatStart();
             }
 
-            int size = sectionList.size();
-            if (size == 1) {
-                Log.i(TAG, "concat thread concat complete");
-                if (onConcatListener != null) {
-                    onConcatListener.onConcatComplete(sectionList.get(0).getPath());
-                }
-                return;
-            }
-
             mediaMuxer.start();
 
             long audioPts = 0;
             long videoPts = 0;
+
+            int size = sectionList.size();
 
             for (int i = 0; i < size; i++) {
                 Section section = sectionList.get(i);
@@ -288,7 +290,12 @@ public class MediaConcat {
                     onConcatListener.onConcatProgress((float) (i + 1) / size);
                 }
             }
-            release();
+            stopConcat();
+        }
+
+        private boolean checkState() {
+            return mediaMuxer == null || audioTrack == -1 || videoTrack == -1 ||
+                    sectionList == null || sectionList.size() == 0;
         }
 
         private int getTrackIndex(MediaExtractor extractor, String mime) {
