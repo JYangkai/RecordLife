@@ -1,6 +1,5 @@
 package com.yk.media.core;
 
-import android.graphics.Bitmap;
 import android.media.AudioRecord;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
@@ -23,8 +22,6 @@ import com.yk.media.utils.FileUtils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.microedition.khronos.egl.EGLContext;
 
@@ -52,13 +49,6 @@ public class MediaRecorder {
         this.audioEncodeParam = audioEncodeParam;
         this.videoEncodeParam = videoEncodeParam;
         this.recordParam = recordParam;
-    }
-
-    public List<Bitmap> getBitmapList() {
-        if (cameraParam.getRenderer() != null) {
-            return cameraParam.getRenderer().getBitmapList();
-        }
-        return null;
     }
 
     /**
@@ -462,9 +452,6 @@ public class MediaRecorder {
                 eglHelper.destoryEgl();
                 eglHelper = null;
                 object = null;
-            }
-            if (cameraParam.getRenderer() != null) {
-                cameraParam.getRenderer().release();
             }
         }
 

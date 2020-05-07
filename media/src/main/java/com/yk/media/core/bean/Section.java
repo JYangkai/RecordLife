@@ -1,6 +1,8 @@
 package com.yk.media.core.bean;
 
-public class Section {
+import java.io.Serializable;
+
+public class Section implements Serializable {
     private String path;
     private boolean keepAudio = true;
     private boolean keepVideo = true;

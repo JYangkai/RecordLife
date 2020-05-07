@@ -2,6 +2,7 @@ package com.yk.recordlife.ui.activity.edit;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Observer;
@@ -9,6 +10,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.yk.media.core.bean.Section;
+import com.yk.media.utils.FileUtils;
 import com.yk.recordlife.R;
 import com.yk.recordlife.data.adapter.FrameAdapter;
 import com.yk.recordlife.data.bean.Frame;
@@ -24,6 +27,8 @@ public class EditActivity extends BaseActivity {
     private RecyclerView recyclerView;
     private FrameAdapter adapter;
     private List<Frame> frameList = new ArrayList<>();
+
+    private List<Section> sectionList;
 
     private String path;
 
@@ -50,6 +55,7 @@ public class EditActivity extends BaseActivity {
 
     @Override
     protected void initData() {
+        sectionList = (List<Section>) getIntent().getSerializableExtra("section_list");
         path = getIntent().getStringExtra("path");
     }
 
@@ -65,21 +71,34 @@ public class EditActivity extends BaseActivity {
                 adapter.notifyDataSetChanged();
             }
         });
+
+        viewModel.concatPath.observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String concatPath) {
+                if (TextUtils.isEmpty(concatPath)) {
+                    return;
+                }
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.frame_layout, VideoFragment.newInstance(concatPath), "video")
+                        .commit();
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.frame_layout, VideoFragment.newInstance(path), "video")
-                .commit();
-        viewModel.loadFrameList(path);
+        viewModel.loadFrameListForSectionList(path, sectionList);
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStop() {
+        super.onStop();
         clearFrameList(frameList);
+        deleteSectionList();
+        if (viewModel != null) {
+            viewModel.stopConcat();
+        }
     }
 
     private void clearFrameList(List<Frame> frameList) {
@@ -97,5 +116,16 @@ public class EditActivity extends BaseActivity {
             return;
         }
         bitmap.recycle();
+    }
+
+    private void deleteSectionList() {
+        if (sectionList == null || sectionList.size() == 0) {
+            return;
+        }
+        for (Section section : sectionList) {
+            FileUtils.deleteFile(section.getPath());
+        }
+        sectionList.clear();
+        sectionList = null;
     }
 }
