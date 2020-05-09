@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.camera.core.Preview;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.yk.media.core.bean.Section;
@@ -18,12 +19,21 @@ import com.yk.media.opengles.view.CameraView;
 import com.yk.recordlife.R;
 import com.yk.recordlife.ui.activity.edit.EditActivity;
 import com.yk.recordlife.ui.base.BaseActivity;
+import com.yk.recordlife.ui.view.MultiProgressBar;
 import com.yk.recordlife.utils.CameraManager;
 
 import java.io.Serializable;
 import java.util.List;
 
 public class RecordActivity extends BaseActivity {
+    private static final int[] colors = {
+            R.color.colorPrimaryDark,
+            R.color.colorAccent,
+            R.color.colorPrimary
+    };
+
+    private int currentColorIndex = 0;
+
     private RecordViewModel viewModel;
 
     private CameraView cameraView;
@@ -31,6 +41,7 @@ public class RecordActivity extends BaseActivity {
     private AppCompatButton switchBtn;
     private AppCompatButton editBtn;
     private AppCompatCheckBox beautyBox;
+    private MultiProgressBar multiProgressBar;
 
     private CameraManager cameraManager;
 
@@ -54,11 +65,14 @@ public class RecordActivity extends BaseActivity {
         switchBtn = findViewById(R.id.switch_btn);
         editBtn = findViewById(R.id.edit_btn);
         beautyBox = findViewById(R.id.beauty_box);
+        multiProgressBar = findViewById(R.id.multi_progress_bar);
     }
 
     @Override
     protected void initData() {
         cameraManager = new CameraManager();
+
+        multiProgressBar.setMaxProgress(30000);
     }
 
     @Override
@@ -89,6 +103,10 @@ public class RecordActivity extends BaseActivity {
                     viewModel.stopRecord();
                     isRecord = false;
                     recordBtn.setText("录制");
+                    if (currentColorIndex == 2) {
+                        currentColorIndex = 0;
+                    }
+                    multiProgressBar.setMultiColor(colors[currentColorIndex++]);
                 } else {
                     boolean isStart = viewModel.startRecord(cameraManager.getFacing(),
                             cameraView.getEglContext(), cameraView.getTextureId(),
@@ -113,6 +131,13 @@ public class RecordActivity extends BaseActivity {
                 intent.putExtra("section_list", (Serializable) sectionList);
                 intent.putExtra("path", viewModel.getPath());
                 startActivity(intent);
+            }
+        });
+
+        viewModel.progress.observe(this, new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer progress) {
+                multiProgressBar.setProgress(progress);
             }
         });
     }

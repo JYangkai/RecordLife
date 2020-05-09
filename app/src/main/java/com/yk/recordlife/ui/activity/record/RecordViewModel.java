@@ -6,6 +6,7 @@ import android.media.MediaFormat;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.MutableLiveData;
 
 import com.yk.media.core.MediaRecorder;
 import com.yk.media.core.OnRecordListener;
@@ -41,6 +42,8 @@ public class RecordViewModel extends BaseViewModel implements OnRecordListener {
     private RecordRenderer recordRenderer;
 
     private boolean isOpenBeauty = false;
+
+    MutableLiveData<Integer> progress = new MutableLiveData<>();
 
     public RecordViewModel(@NonNull Application application) {
         super(application);
@@ -160,6 +163,7 @@ public class RecordViewModel extends BaseViewModel implements OnRecordListener {
     @Override
     public void onRecordTime(long time) {
         Log.i(TAG, "onRecordTime:" + time);
+        progress.postValue((int) time);
     }
 
     @Override

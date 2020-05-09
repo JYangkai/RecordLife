@@ -40,6 +40,8 @@ public class MediaRecorder {
 
     private int recordIndex = 0;
 
+    private long recordTime = 0;
+
     public void prepare(MicParam micParam, CameraParam cameraParam,
                         AudioEncodeParam audioEncodeParam, VideoEncodeParam videoEncodeParam,
                         RecordParam recordParam) {
@@ -113,6 +115,7 @@ public class MediaRecorder {
     public void reset() {
         Log.i(TAG, "reset");
         recordIndex = 0;
+        recordTime = 0;
     }
 
     private class MediaThread extends Thread {
@@ -236,6 +239,7 @@ public class MediaRecorder {
             MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
             while (true) {
                 if (isStopRecord) {
+                    recordTime += videoInfo.presentationTimeUs / 1000;
                     release();
                     break;
                 }
@@ -276,7 +280,7 @@ public class MediaRecorder {
 
                         // 以视频为准，回调当前录制时间
                         if (onRecordListener != null) {
-                            onRecordListener.onRecordTime(videoInfo.presentationTimeUs / 1000);
+                            onRecordListener.onRecordTime(recordTime + videoInfo.presentationTimeUs / 1000);
                         }
                     }
                     videoCodec.releaseOutputBuffer(videoOutputBufferId, false);

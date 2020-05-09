@@ -52,4 +52,10 @@
         android:text="开启美颜"
         android:textColor="@color/colorWhite" />
 
+    <com.yk.recordlife.ui.view.MultiProgressBar
+        android:id="@+id/multi_progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:layout_alignParentTop="true" />
+
 </RelativeLayout>
