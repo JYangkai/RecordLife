@@ -26,14 +26,6 @@ import java.io.Serializable;
 import java.util.List;
 
 public class RecordActivity extends BaseActivity {
-    private static final int[] colors = {
-            R.color.colorPrimaryDark,
-            R.color.colorAccent,
-            R.color.colorPrimary
-    };
-
-    private int currentColorIndex = 0;
-
     private RecordViewModel viewModel;
 
     private CameraView cameraView;
@@ -103,10 +95,7 @@ public class RecordActivity extends BaseActivity {
                     viewModel.stopRecord();
                     isRecord = false;
                     recordBtn.setText("录制");
-                    if (currentColorIndex == 2) {
-                        currentColorIndex = 0;
-                    }
-                    multiProgressBar.setMultiColor(colors[currentColorIndex++]);
+                    multiProgressBar.marker();
                 } else {
                     boolean isStart = viewModel.startRecord(cameraManager.getFacing(),
                             cameraView.getEglContext(), cameraView.getTextureId(),
@@ -159,6 +148,9 @@ public class RecordActivity extends BaseActivity {
         super.onStop();
         if (cameraManager != null) {
             cameraManager.closeCamera();
+        }
+        if (multiProgressBar != null) {
+            multiProgressBar.setProgress(0);
         }
         if (viewModel != null) {
             viewModel.release();

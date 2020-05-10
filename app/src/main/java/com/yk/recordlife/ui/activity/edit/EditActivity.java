@@ -29,7 +29,6 @@ public class EditActivity extends BaseActivity {
     private List<Frame> frameList = new ArrayList<>();
 
     private List<Section> sectionList;
-
     private String path;
 
     @Override
