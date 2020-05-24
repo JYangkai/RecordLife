@@ -4,12 +4,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatCheckBox;
+import androidx.appcompat.widget.AppCompatSeekBar;
 import androidx.camera.core.Preview;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -29,6 +31,7 @@ public class RecordActivity extends BaseActivity {
     private RecordViewModel viewModel;
 
     private CameraView cameraView;
+    private AppCompatSeekBar seekBar;
     private AppCompatButton recordBtn;
     private AppCompatButton switchBtn;
     private AppCompatButton editBtn;
@@ -53,6 +56,7 @@ public class RecordActivity extends BaseActivity {
     @Override
     protected void findView() {
         cameraView = findViewById(R.id.camera_view);
+        seekBar = findViewById(R.id.seek_bar);
         recordBtn = findViewById(R.id.record_btn);
         switchBtn = findViewById(R.id.switch_btn);
         editBtn = findViewById(R.id.edit_btn);
@@ -120,6 +124,24 @@ public class RecordActivity extends BaseActivity {
                 intent.putExtra("section_list", (Serializable) sectionList);
                 intent.putExtra("path", viewModel.getPath());
                 startActivity(intent);
+            }
+        });
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float level = 0.99f - (float) progress / 100;
+                cameraView.setBeautyLevel(level);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
 

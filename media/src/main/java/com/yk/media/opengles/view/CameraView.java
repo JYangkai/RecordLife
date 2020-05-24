@@ -99,4 +99,10 @@ public class CameraView extends EGLSurfaceView {
             renderer.openBeauty(isOpenBeauty);
         }
     }
+
+    public void setBeautyLevel(float level) {
+        if (renderer != null) {
+            renderer.setBeautyLevel(level);
+        }
+    }
 }

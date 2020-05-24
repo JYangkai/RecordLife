@@ -86,4 +86,10 @@ public class CameraRenderer implements EGLSurfaceView.Renderer {
             camera.openBeauty(isOpenBeauty);
         }
     }
+
+    public void setBeautyLevel(float level) {
+        if (camera != null) {
+            camera.setBeautyLevel(level);
+        }
+    }
 }

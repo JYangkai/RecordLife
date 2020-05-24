@@ -2,6 +2,7 @@ precision mediump float;
 uniform sampler2D uSampler;
 varying vec2 vCoordinate;
 uniform vec2 uStep;
+uniform float uBeautyLevel;
 vec2 blurCoordinates[12];
 const highp vec3 W = vec3(0.299,0.587,0.114);
 const mat3 saturateMatrix = mat3(
@@ -37,7 +38,7 @@ float hardLight(float color) {
 void main(){
     vec4 sourceColor = texture2D(uSampler, vCoordinate);
 
-    if (uStep.x == 0.0 || uStep.y == 0.0) {
+    if (uBeautyLevel == 1.0) {
         gl_FragColor = sourceColor;
         return;
     }
@@ -83,7 +84,7 @@ void main(){
     }
 
     float lumance = dot(sourceColor.rgb, W);
-    float alpha = pow(lumance, 0.33);
+    float alpha = pow(lumance, uBeautyLevel);
 
     vec3 smoothColor = sourceColor.rgb + (sourceColor.rgb - vec3(highPass)) * alpha * 0.1;
 

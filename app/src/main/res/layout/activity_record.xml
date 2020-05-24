@@ -12,6 +12,15 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="64dp" />
 
+    <androidx.appcompat.widget.AppCompatSeekBar
+        android:id="@+id/seek_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/camera_view"
+        android:layout_margin="32dp"
+        android:max="66"
+        android:progress="0"/>
+
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/record_btn"
         android:layout_width="wrap_content"

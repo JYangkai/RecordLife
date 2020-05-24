@@ -60,6 +60,7 @@ public class Camera {
     private int aCoordLocation;
     private int uSamplerLocation;
     private int uStepLocation;
+    private int uBeautyLevelLocation;
 
     public void draw() {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
@@ -70,6 +71,7 @@ public class Camera {
         aCoordLocation = GLES20.glGetAttribLocation(program, "aCoordinate");
         uSamplerLocation = GLES20.glGetUniformLocation(program, "uSampler");
         uStepLocation = GLES20.glGetUniformLocation(program, "uStep");
+        uBeautyLevelLocation = GLES20.glGetUniformLocation(program, "uBeautyLevel");
 
         // 激活纹理单元
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
@@ -85,11 +87,16 @@ public class Camera {
         GLES20.glVertexAttribPointer(aCoordLocation, 2, GLES20.GL_FLOAT, false, 0, coordinateBuffer);
 
         // 传入宽高
-        if (isOpenBeauty) {
-            GLES20.glUniform2f(uStepLocation, (float) 2 / width, (float) 2 / height);
-        } else {
-            GLES20.glUniform2f(uStepLocation, 0, 0);
+        GLES20.glUniform2f(uStepLocation, (float) 2 / width, (float) 2 / height);
+
+        // 是否开启美颜
+        if (!isOpenBeauty) {
+            beautyLevel = 1.0f;
         }
+        if (isOpenBeauty && beautyLevel == 1.0f) {
+            beautyLevel = 0.99f;
+        }
+        GLES20.glUniform1f(uBeautyLevelLocation, beautyLevel);
 
         // 绘制
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
@@ -105,5 +112,21 @@ public class Camera {
     public void openBeauty(boolean isOpenBeauty) {
         Log.i("JOJO", "camera openBeauty:" + isOpenBeauty);
         this.isOpenBeauty = isOpenBeauty;
+    }
+
+    private float beautyLevel = 1.0f;
+
+    /**
+     * 设置美颜等级
+     *
+     * @param level 0.33 - 0.99，值越小，美颜程度越大
+     */
+    public void setBeautyLevel(float level) {
+        beautyLevel = level;
+        if (beautyLevel > 0.99f) {
+            beautyLevel = 0.99f;
+        } else if (beautyLevel < 0.33f) {
+            beautyLevel = 0.33f;
+        }
     }
 }
